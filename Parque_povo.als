@@ -1,39 +1,22 @@
-sig Visitante {
-    ingressos: some Ingresso
+sig Dia {}
 
+sig Pessoa {
+    ingressos_comprados: set Ingresso
 }
 
-abstract sig Setor{
-    visitantes : set Visitante
+sig Ingresso {
+    dia: one Dia
+    setor: one SetorRestrito
+    dono: lone Pessoa
 }
 
-sig Pista extends Setor{    
-}
+abstract sig Setor {}
+sig Pista extends Setor {}
 
-sig Camarote extends Setor{
-}
-
-sig Frontstage extends Setor{
-}
-
-
-abstract sig Ingresso{
-    visitante : one Visitante
-}
-
-sig IngressoPista extends Ingresso{}
-sig IngressoCamarote extends Ingresso{}
-sig IngressoFrontStage extends Ingresso{}
+-- Todo setor que precisa de Ingresso deve FrontStage ou Camarote
+abstract sig SetorRestrito extends Setor {}
+sig FrontStage extends SetorRestrito {}
+sig Camarote extends SetorRestrito{}
 
 
 
-fact {
-    -- Cada visitante pode no máximo ter 1 ingresso
-    all v:Visitante | lone ingressos.i
-    -- Todo visitante tem acesso a Pista
-    all v:Visitante | esta_presente[v, Pista]
-}
-
-pred esta_presente[v:Visitante, s:Setor]{
-    v in s
-}
