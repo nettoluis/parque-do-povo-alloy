@@ -1,3 +1,10 @@
-# Especificação 
+# Tema
 
 A organização da Festa do Parque do Povo deseja controlar o acesso dos visitantes aos diferentes dias e setores do evento, que possui as áreas Pista, Frontstage e Camarote. Qualquer pessoa pode comparecer a um dia da festa sem ingresso, tendo acesso somente à Pista, que é livre. Os ingressos são vendidos exclusivamente para Frontstage e Camarote, sendo cada ingresso válido para exatamente um dia e um único setor, podendo estar disponível ou associado a apenas uma pessoa. Uma pessoa pode comprar ingressos para vários dias, mas não pode possuir mais de um ingresso para o mesmo dia. Quem possui ingresso válido pode acessar o setor indicado e também a Pista, enquanto ninguém pode entrar no Frontstage ou no Camarote sem um ingresso correspondente ao mesmo setor e dia. A organização deve garantir que nenhum ingresso seja utilizado por mais de uma pessoa, que não seja usado em um dia diferente daquele para o qual foi emitido e que visitantes sem ingresso não acessem setores restritos.
+
+# Especificação
+
+Definir e usar, no mínimo, um predicado e, no mínimo, uma função.
+Usar assinaturas, relações binárias, cardinalidades, extends ou in (se desejar especializar algo), além de quantificadores nos fatos.
+Incluir, pelo menos, duas asserções que permitam verificar propriedades desejáveis do software. As asserções não devem duplicar fatos já explícitos ou verificar propriedades já garantidas nos fatos, pois isso reduz o valor analítico que uma asserção deve ter.
+Criar um cenário exemplo e usar, pelo menos, escopo 5.
