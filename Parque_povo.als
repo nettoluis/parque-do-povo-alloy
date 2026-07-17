@@ -41,18 +41,22 @@ fact {
 	all s: Setor | one d:Dia | s = d.camarote or s = d.frontstage or s = d.pista
 
 	-- Cada Pessoa não pode ter dois ingressos no mesmo dia
-	all p: Pessoa, d: Dia | lone i: Ingresso | i.dono = p and i in d.camarote.ingressos + d.frontstage.ingressos
+	all p: Pessoa, d: Dia | lone i: Ingresso | i.dono = p and i in ingressosSetoresRestritosDoDia[d]
 
 	--Cada Pessoa está em pelo menos um dia
 	all p: Pessoa | some d: Dia | p in visitantesDoDia[d]
 
 	-- Se a Pessoa está em um Setor Restrito naquele dia, então ele também está na Pista
-	all d: Dia | all i: d.camarote.ingressos + d.frontstage.ingressos | i.dono in d.pista.acessos
+	all d: Dia | all i: ingressosSetoresRestritosDoDia[d] | i.dono in d.pista.acessos
     
 }
 
 fun visitantesDoDia[d: Dia]: set Pessoa {
     d.pista.acessos + d.camarote.ingressos.dono + d.frontstage.ingressos.dono
+}
+
+fun ingressosSetoresRestritosDoDia[d : Dia]: set Ingresso{
+	d.camarote.ingressos + d.frontstage.ingressos
 }
 
 -- Garantir que não existe um dia que não esteja no Parque do Povo
@@ -65,13 +69,23 @@ assert diasSetoresUnicos{
 	all disj d1, d2 : Dia | no (d1.camarote & d2.camarote)
 	all disj d1, d2 : Dia | no (d1.frontstage & d2.frontstage)
 }
--- Garantir que todo tem um único setor associado
+-- Garantir que todo ingresso tem um único setor associado
 assert ingressoUnicoSetorRestrito{
 	all disj s1, s2 : SetorRestrito | no (s1.ingressos & s2.ingressos)
 }
+-- Garantir que toda pessoa está em um dia
+assert pessoaPeloMenosUmDia{
+	no (Pessoa - Dia.visitantesDoDia)
+}
+-- Garantir que uma pessoa não pode ter dois ingressos no mesmo dia
+assert pessoaIngressosMesmoDia{
+	all disj i1, i2 : Ingresso | all d : Dia | (i1 in ingressosSetoresRestritosDoDia[d] and i2 in ingressosSetoresRestritosDoDia[d]) implies i1.dono != i2.dono
+}
 
-check ppDias for 5
-check diasSetoresUnicos for 5
-check ingressoUnicoSetorRestrito for 5
+check ppDias for 15 but exactly 5 Dia, 5 Pessoa
+check diasSetoresUnicos for 15 but exactly 5 Dia, 5 Pessoa
+check ingressoUnicoSetorRestrito for 15 but exactly 5 Dia, 5 Pessoa
+check pessoaIngressosMesmoDia for 15 but exactly 5 Dia, 5 Pessoa
+check pessoaPeloMenosUmDia for 15 but exactly 5 Dia, 5 Pessoa
 
 run {} for 5
