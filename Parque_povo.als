@@ -6,13 +6,16 @@ one sig ParqueDoPovo {
 sig Dia { 
 	pista: one Pista, 
 	camarote: one Camarote, 
-	frontstage: one Frontstage 
+	frontstage: one Frontstage,
+	pessoa_no_dia : some Pessoa,
+	ingresso_do_dia : set Ingresso
 }
 
-sig Pessoa {}
+sig Pessoa {
+}
 
 sig Ingresso { 
-	dono: one Pessoa 
+	dono: one Pessoa
 }
 
 abstract sig Setor{} 
@@ -21,45 +24,45 @@ sig Pista extends Setor{
 	acessos: set Pessoa 
 }
 
-abstract sig SetorRestrito extends Setor{}
-
-sig Camarote extends SetorRestrito{ 
-	ingresso_camarote : set Ingresso 
+abstract sig SetorRestrito extends Setor{
+	ingressos: set Ingresso
 }
 
-sig Frontstage extends SetorRestrito{ 
-	ingresso_front : set Ingresso 
-}fact { 
+sig Camarote, Frontstage extends SetorRestrito{}
+
+fact { 
 	-- Cada dia está associado ao Parque do Povo 
-	all d: Dia | d in ParqueDoPovo.dias
-	-- Cada dia tem seus Setores únicos 
-	all disj d1, d2: Dia | no (setoresDoDia[d1] & setoresDoDia[d2])
+	ParqueDoPovo.dias = Dia
+
 	-- Cada Setor está vinculado a exatamente um Dia 
 	all s: Setor | one d:Dia | s in setoresDoDia[d]
-	-- Toda Pessoa tem acesso a Pista 
-	all p : Pista, g : Pessoa | g in p.acessos
-	-- Uma Pessoa não pode ter mais de um ingresso do mesmo Dia 
-	all d: Dia, p: Pessoa | lone { i: ingressosDia[d] | i.dono = p }
-	-- Cada Ingresso pertence a exatamente um setor restrito 
-	all i: Ingresso | one setoresRestritos[i]
-}
 
+	-- Cada dia tem seus Setores únicos 
+	all disj d1, d2: Dia | no (setoresDoDia[d1] & setoresDoDia[d2])
+
+	-- Cada Ingresso pertence a exatamente um setor restrito 
+	all i: Ingresso | one s: SetorRestrito | i in s.ingressos
+
+	--Toda pessoa pertence a algum dia.
+	all p : Pessoa | some d: Dia | p in d.pessoa_no_dia
+	
+	-- Toda pessoa tem acesso a pista do dia que esta.
+	all d : Dia | all p : d.pessoa_no_dia | p in d.pista.acessos
+
+	-- Uma pessoa nao pode ter ingresso do mesmo dia.
+	all p : Pessoa | all disj i1, i2 : p.~dono | not mesmoDia[i1, i2]
+
+	-- Um ingresso so tem um dia
+	all i : Ingresso | one d : Dia | i in d.ingresso_do_dia
+}
 
 fun setoresDoDia[d: Dia]: set Setor { 
 	d.pista + d.camarote + d.frontstage 
 } 
-fun setoresRestritos[i: Ingresso]: set SetorRestrito { 
-	ingresso_front.i + ingresso_camarote.i 
-} 
-fun ingressosDia[d: Dia]: set Ingresso { 
-	d.frontstage.ingresso_front + d.camarote.ingresso_camarote 
+
+
+pred mesmoDia[i1, i2 : Ingresso] {
+    some d : Dia | i1 in d.ingresso_do_dia and i2 in d.ingresso_do_dia
 }
 
-run {} for 5 but
-    exactly 5 Dia,
-    exactly 5 Pista,
-    exactly 5 Camarote,
-    exactly 5 Frontstage,
-    exactly 5 Pessoa,
-    exactly 10 Ingresso
-
+run {} for 10 but exactly 4 Ingresso
