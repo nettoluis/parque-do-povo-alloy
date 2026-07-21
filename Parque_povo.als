@@ -6,13 +6,16 @@ one sig ParqueDoPovo {
 sig Dia { 
 	pista: one Pista, 
 	camarote: one Camarote, 
-	frontstage: one Frontstage 
+	frontstage: one Frontstage,
+	pessoasNoDia: some Pessoa,
+	ingressosDoDia : set Ingresso
 }
 
-sig Pessoa {}
+sig Pessoa {
+}
 
 sig Ingresso { 
-	dono: one Pessoa 
+	dono: one Pessoa
 }
 
 abstract sig Setor{} 
@@ -28,33 +31,41 @@ abstract sig SetorRestrito extends Setor{
 sig Camarote, Frontstage extends SetorRestrito{}
 
 fact { 
-	-- Cada dia está associado ao Parque do Povo 
+	-- Cada dia está associado ao Parque do Povo.
 	ParqueDoPovo.dias = Dia
 
-	-- Cada Setor está vinculado a exatamente um Dia 
+	-- Cada Setor está vinculado a exatamente um Dia.
 	all s: Setor | one d:Dia | s in setoresDoDia[d]
 
-	-- Cada dia tem seus Setores únicos 
+	-- Cada dia tem seus Setores únicos.
 	all disj d1, d2: Dia | no (setoresDoDia[d1] & setoresDoDia[d2])
 
-	-- Cada Ingresso pertence a exatamente um setor restrito 
+	-- Cada Ingresso pertence a exatamente um setor restrito.
 	all i: Ingresso | one s: SetorRestrito | i in s.ingressos
 
-	--Toda Pessoa está em pelo menos um Dia
-	all p: Pessoa | some d: Dia | p in d.pista.acessos
+	-- Uma pessoa não pode ter dois ingresso do mesmo dia.
+	all p : Pessoa | all disj i1, i2 : p.~dono | not mesmoDia[i1, i2]
 
-	-- Toda Pessoa que tem ingresso tem acesso a pista daquele Dia
-	all d: Dia | ingressosDoDia[d].dono in d.pista.acessos
+	--Toda pessoa pertence a algum dia.
+	all p : Pessoa | some d: Dia | p in d.pessoasNoDia
+	
+	-- Toda pessoa que possui um ingresso do dia pertence ao dia.
+	all d: Dia | all i: d.ingressosDoDia | i.dono in d.pessoasNoDia
 
-	-- Uma Pessoa não pode ter mais de um ingresso do mesmo Dia 
-	all d: Dia, p: Pessoa | lone { i: ingressosDoDia[d] | i.dono = p }
+	-- Toda pessoa tem acesso a pista do dia que está.
+	all d: Dia | d.pessoasNoDia = d.pista.acessos
+	
+	-- Todo ingresso de um dia pertence ao Frontstage ou ao Camarote desse dia.
+	all d: Dia | d.ingressosDoDia = d.frontstage.ingressos + d.camarote.ingressos
+
 }
 
 fun setoresDoDia[d: Dia]: set Setor { 
 	d.pista + d.camarote + d.frontstage 
 } 
-fun ingressosDoDia[d: Dia]: set Ingresso { 
-	d.frontstage.ingressos + d.camarote.ingressos
+
+pred mesmoDia[i1, i2 : Ingresso] {
+    one d : Dia | i1 in d.ingressosDoDia and i2 in d.ingressosDoDia
 }
 
-run {} for 5
+run {} for 10
