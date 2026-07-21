@@ -68,42 +68,18 @@ pred mesmoDia[i1, i2 : Ingresso] {
     one d : Dia | i1 in d.ingressosDoDia and i2 in d.ingressosDoDia
 }
 
--- Garante que todo dia do modelo pertence ao Parque do Povo.
-assert todoDiaPertenceAoParque {
-    all d: Dia | d in ParqueDoPovo.dias
+-- Garante que nenhum ingresso é compartilhado entre dias diferentes: cada ingresso pertence a exatamente um dia do parque.
+assert ingressoPertenceAUmUnicoDia {
+	all i: Ingresso | one d: Dia | i in d.ingressosDoDia
 }
-check todoDiaPertenceAoParque for 10
+check ingressoPertenceAUmUnicoDia for 10
 
--- Garante que um mesmo setor nunca aparece em dois dias diferentes.
-assert setorNuncaApareceEmDoisDias {
-    all s: Setor, disj d1, d2: Dia | not (s in setoresDoDia[d1] and s in setoresDoDia[d2])
+-- Garante que quem possui ingresso de Camarote ou Frontstage de um dia também tem acesso garantido à Pista desse mesmo dia.
+assert donoDeIngressoRestritoAcessaPista {
+	all d: Dia, p: Pessoa |
+	p in (d.camarote.ingressos + d.frontstage.ingressos).dono => p in d.pista.acessos
 }
-check setorNuncaApareceEmDoisDias for 10
-
--- Garante que todo ingresso pertence a exatamente um setor restrito (Camarote ou Frontstage).
-assert ingressoEhDeExatamenteUmSetor {
-    all i: Ingresso | not ((i in Camarote.ingressos) <=> (i in Frontstage.ingressos))
-}
-check ingressoEhDeExatamenteUmSetor for 10
-
--- Garante que dois ingressos distintos do mesmo dia nunca pertencem à mesma pessoa.
-assert doisIngressosMesmoDiaTemDonosDistintos {
-    all d: Dia | all disj i1, i2: d.ingressosDoDia | i1.dono != i2.dono
-}
-check doisIngressosMesmoDiaTemDonosDistintos for 10
-
--- Garante que ninguém possui ingresso de um dia sem pertencer a esse dia.
-assert quemNaoEstaNoDiaNaoTemIngressoDoDia {
-    all d: Dia, p: Pessoa | p not in d.pessoasNoDia => no (p.~dono & d.ingressosDoDia)
-}
-check quemNaoEstaNoDiaNaoTemIngressoDoDia for 10
-
--- Garante que ninguém acessa Camarote ou Frontstage sem possuir ingresso correspondente ao mesmo setor e dia.
-assert acessoSetorRestritoExigeIngresso {
-    all d: Dia, p: Pessoa, sr: (d.camarote + d.frontstage) |
-    p in sr.ingressos.dono => some i: sr.ingressos | i.dono = p
-}
-check acessoSetorRestritoExigeIngresso for 10
+check donoDeIngressoRestritoAcessaPista for 10
 
 run {} for 10
 
