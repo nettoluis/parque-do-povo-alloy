@@ -7,8 +7,8 @@ sig Dia {
 	pista: one Pista, 
 	camarote: one Camarote, 
 	frontstage: one Frontstage,
-	pessoa_no_dia : some Pessoa,
-	ingresso_do_dia : set Ingresso
+	pessoaNoDia: some Pessoa,
+	ingressoDoDia : set Ingresso
 }
 
 sig Pessoa {
@@ -43,26 +43,33 @@ fact {
 	-- Cada Ingresso pertence a exatamente um setor restrito 
 	all i: Ingresso | one s: SetorRestrito | i in s.ingressos
 
-	--Toda pessoa pertence a algum dia.
-	all p : Pessoa | some d: Dia | p in d.pessoa_no_dia
-	
-	-- Toda pessoa tem acesso a pista do dia que esta.
-	all d : Dia | all p : d.pessoa_no_dia | p in d.pista.acessos
-
 	-- Uma pessoa nao pode ter ingresso do mesmo dia.
 	all p : Pessoa | all disj i1, i2 : p.~dono | not mesmoDia[i1, i2]
 
-	-- Um ingresso so tem um dia
-	all i : Ingresso | one d : Dia | i in d.ingresso_do_dia
+	--Toda pessoa pertence a algum dia.
+	all p : Pessoa | some d: Dia | p in d.pessoaNoDia
+	
+	-- Toda pessoa que possui um ingresso do dia pertence ao dia.
+	all d: Dia | all i: d.ingressoDoDia | i.dono in d.pessoaNoDia
+
+	-- Toda pessoa tem acesso a pista do dia que esta.
+	all d: Dia | d.pessoaNoDia = d.pista.acessos
+	
+	-- Se um ingresso está em um setor, ele também está no dia do setor.
+	all d: Dia | ingressosDoDia[d] = d.ingressoDoDia
+
 }
 
 fun setoresDoDia[d: Dia]: set Setor { 
 	d.pista + d.camarote + d.frontstage 
 } 
 
-
-pred mesmoDia[i1, i2 : Ingresso] {
-    some d : Dia | i1 in d.ingresso_do_dia and i2 in d.ingresso_do_dia
+fun ingressosDoDia[d: Dia]: set Ingresso {
+    d.frontstage.ingressos + d.camarote.ingressos
 }
 
-run {} for 10 but exactly 4 Ingresso
+pred mesmoDia[i1, i2 : Ingresso] {
+    some d : Dia | i1 in d.ingressoDoDia and i2 in d.ingressoDoDia
+}
+
+run {} for 15 but exactly 5 Dia
