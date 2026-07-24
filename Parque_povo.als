@@ -11,7 +11,7 @@ sig Pista {
 -- Dia se relaciona com Pista e Pessoa.
 some sig Dia {
 	pista: one Pista,
-	setores: some SetorPrivado,
+	setoresPrivados: some SetorPrivado,
 	pessoasNoDia: some Pessoa
 }
 
@@ -39,18 +39,18 @@ fact {
 	ParqueDoPovo.ingressos = Ingresso
 
 	-- Cada Setor Privado utilizado pertence a exatamente um dia (setores não são compartilhados entre dias).
-	all sp: SetorPrivado | lone d: Dia | sp in setoresPrivadosDoDia[d]
+	all sp: SetorPrivado | one d: Dia | sp in setoresPrivadosDoDia[d]
 
 	-- Uma pessoa não pode ter dois ingressos do mesmo dia.
 	all p: Pessoa | all disj i1, i2: p.~dono | not mesmoDia[i1, i2]
 
 	  -- Cada dia tem seus Setores e Pistas únicos.
-    	all disj d1, d2: Dia | no (d1.setores & d2.setores) and no (d1.pista & d2.pista)
+    	all disj d1, d2: Dia | no (d1.setoresPrivados & d2.setoresPrivados) and no (d1.pista & d2.pista)
 
 	 -- Cada dia possui exatamente uma Pista, um Camarote e um Frontstage.
     	all d: Dia {
-        		one d.setores & Camarote
-        		one d.setores & Frontstage
+        		one d.setoresPrivados & Camarote
+        		one d.setoresPrivados & Frontstage
     		}
 
 	-- Toda pessoa pertence a algum dia.
