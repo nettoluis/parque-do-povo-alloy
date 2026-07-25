@@ -5,11 +5,11 @@ one sig ParqueDoPovo {
 
 -- Dia se relaciona com Setores - SetorPrivado e Pista
 some sig Dia {
-    setores: some Setor,	
+	setores: some Setor,	
 	pessoasNoDia: some Pessoa
 }
 
-sig Pessoa {}
+some sig Pessoa {}
 
 abstract sig Setor {}
 sig Pista extends Setor {
@@ -19,8 +19,6 @@ sig Pista extends Setor {
 abstract sig SetorPrivado extends Setor {}
 sig Camarote, Frontstage extends SetorPrivado {}
 
-
-
 -- Ingresso aponta para Dia, Pessoa e SetorPrivado.
 sig Ingresso {
 	dia: one Dia,
@@ -28,43 +26,43 @@ sig Ingresso {
 	setor: one SetorPrivado
 }
 
-fact {
-
-	-- Todo dia pertence ao Parque do Povo
-	ParqueDoPovo.dias = Dia
-	
-	-- Todo Setor (Pista ou SetorPrivado) pertence a exatamente um dia (setores não são compartilahdos entre dias).
-	all s: Setor | one d: Dia | s in d.setores
-
-	-- O ingresso corresponde ao dia do setor
-	all i: Ingresso | i.setor in i.dia.setores
-
-	-- Uma pessoa não pode ter dois ingressos do mesmo dia.
-	all p: Pessoa | all disj i1, i2: p.~dono | not mesmoDia[i1, i2]
-
-	-- Cada dia tem seus Setores e Pistas únicos.
-	all disj d1, d2: Dia | no (d1.setores & d2.setores)
-
-	-- Cada dia possui exatamente uma Pista, um Camarote e um Frontstage.
-	all d: Dia {
-			one pistaDoDia[d]
-			one d.setores & Camarote
-			one d.setores & Frontstage
-	}
-
-	-- Toda pessoa pertence a algum dia.
-	all p: Pessoa | some d: Dia | p in d.pessoasNoDia
-
-	-- Toda pessoa que possui um ingresso de um dia pertence a esse dia.
-	all i: Ingresso | i.dono in i.dia.pessoasNoDia
-
-	-- Toda pessoa tem acesso à pista do dia em que está.
-	all d: Dia | d.pessoasNoDia = pistaDoDia[d].acessos
+fact ParqueDoPovo {
+    -- Todo dia pertence ao Parque do Povo.
+    ParqueDoPovo.dias = Dia
 }
 
--- Retorna todos os ingressos vinculados a um determinado dia.
-fun ingressosDoDia[d: Dia]: set Ingresso {
-	d.~dia
+fact Setores {
+    -- Todo setor pertence a exatamente um dia.
+    all s: Setor | one d: Dia | s in d.setores
+
+    -- Dias não compartilham setores.
+    all disj d1, d2: Dia | no (d1.setores & d2.setores)
+
+    -- Cada dia possui exatamente uma pista, um camarote e um frontstage.
+    all d: Dia {
+        one pistaDoDia[d]
+        one d.setores & Camarote
+        one d.setores & Frontstage
+    }
+}
+
+fact Ingressos {
+    -- O setor do ingresso pertence ao dia do ingresso.
+    all i: Ingresso | i.setor in i.dia.setores
+
+    -- Uma pessoa não pode ter dois ingressos do mesmo dia.
+    all p: Pessoa | all disj i1, i2: p.~dono | not mesmoDia[i1, i2]
+}
+
+fact Pessoas {
+    -- Toda pessoa pertence a algum dia.
+    all p: Pessoa | some d: Dia | p in d.pessoasNoDia
+
+    -- Quem possui um ingresso de um dia pertence a esse dia.
+    all i: Ingresso | i.dono in i.dia.pessoasNoDia
+
+    -- Todas as pessoas presentes em um dia têm acesso à pista.
+    all d: Dia | d.pessoasNoDia = pistaDoDia[d].acessos
 }
 
 -- Retorna a Pista associada a um determinado dia.
@@ -82,4 +80,4 @@ assert qtdIngressosPessoaLimitadaAoNumeroDeDias {
 	all p: Pessoa | #(p.~dono) <= #Dia
 }
 
-run {} for 5
+run {} for 10
