@@ -5,19 +5,21 @@ one sig ParqueDoPovo {
 
 -- Dia se relaciona com Setores - SetorPrivado e Pista
 some sig Dia {
-    setores: some Setores,	
+    setores: some Setor,	
 	pessoasNoDia: some Pessoa
 }
 
 sig Pessoa {}
 
-abstract sig Setores {}
-abstract sig SetorPrivado extends Setores {}
-sig Camarote, Frontstage extends SetorPrivado {}
-
-sig Pista extends Setores {
+abstract sig Setor {}
+sig Pista extends Setor {
 	acessos: set Pessoa
 }
+
+abstract sig SetorPrivado extends Setor {}
+sig Camarote, Frontstage extends SetorPrivado {}
+
+
 
 -- Ingresso aponta para Dia, Pessoa e SetorPrivado.
 sig Ingresso {
@@ -32,7 +34,10 @@ fact {
 	ParqueDoPovo.dias = Dia
 	
 	-- Todo Setor (Pista ou SetorPrivado) pertence a exatamente um dia (setores não são compartilahdos entre dias).
-	all s: Setores | one d: Dia | s in d.setores
+	all s: Setor | one d: Dia | s in d.setores
+
+	-- O ingresso corresponde ao dia do setor
+	all i: Ingresso | i.setor in i.dia.setores
 
 	-- Uma pessoa não pode ter dois ingressos do mesmo dia.
 	all p: Pessoa | all disj i1, i2: p.~dono | not mesmoDia[i1, i2]
