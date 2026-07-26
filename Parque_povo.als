@@ -80,4 +80,17 @@ assert qtdIngressosPessoaLimitadaAoNumeroDeDias {
 	all p: Pessoa | #(p.~dono) <= #Dia
 }
 
+-- Garante que quem possui um ingresso também tem acesso à Pista do mesmo dia do ingresso
+assert donoDeIngressoAcessaPistaDoDia {
+	all i: Ingresso | i.dono in pistaDoDia[i.dia].acessos
+}
+check donoDeIngressoAcessaPistaDoDia for 10
+
+-- Garante que dois ingressos que apontam para o mesmo Setor Privado pertencem necessariamente ao mesmo Dia
+assert ingressosMesmoSetorEstaoNoMesmoDia {
+	all disj i1, i2: Ingresso | i1.setor = i2.setor => i1.dia = i2.dia
+}
+check ingressosMesmoSetorEstaoNoMesmoDia for 10
+
+
 run {} for 10
