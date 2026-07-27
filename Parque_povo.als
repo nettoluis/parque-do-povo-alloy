@@ -1,79 +1,81 @@
-one sig ParqueDoPovo {
-	dias: some Dia
+one sig ParqueDoPovo { 
+    dias: some Dia 
 }
 
-sig Dia {
-	setores: some Setor
+sig Dia { 
+    setores: some Setor
 }
 
-sig Pessoa {}
-
-sig Ingresso {
-	dono: one Pessoa
+sig Pessoa {
 }
 
-abstract sig Setor {}
-
-sig Pista extends Setor {
-	acessos: set Pessoa
+sig Ingresso { 
+    dono: one Pessoa
 }
 
-sig Camarote extends Setor {
-	ingressos: set Ingresso
+abstract sig Setor{} 
+
+sig Pista extends Setor{ 
+    acessos: some Pessoa 
 }
 
-sig Frontstage extends Setor {
-	ingressos: set Ingresso
+abstract sig SetorRestrito extends Setor{
+    ingressos: set Ingresso
 }
 
-fact ParqueDoPovoFact {
-	-- Todo Dia pertence ao Parque do Povo.
-	ParqueDoPovo.dias = Dia
+sig Camarote, Frontstage extends SetorRestrito{}
+
+fact ParqueDoPovo {
+    -- Todo dia está associado ao Parque do Povo.
+    ParqueDoPovo.dias = Dia
 }
 
-fact DiasFact {
-	-- Cada Setor pertence a exatamente um Dia.
-	all s: Setor | one d: Dia | s in d.setores
+fact Setores {
+    -- Cada Setor está vinculado a exatamente um Dia.
+    all s: Setor | one d:Dia | s in d.setores
 
-	-- Os Setores de um Dia não pertencem a outro Dia.
-	all disj d1, d2: Dia | no (d1.setores & d2.setores)
-
-	-- Todo Dia possui exatamente uma Pista, um Camarote e um Fronstage.
-	all d: Dia | possuiSetores[d]
+    -- Cada dia possui exatamente uma Pista, um Camarote e um Frontstage.
+    all d: Dia {
+        one d.setores & Pista
+        one d.setores & Camarote
+        one d.setores & Frontstage
+    }
 }
 
-fact IngressosFact {
-	-- Cada Ingresso pertence a exatamente um setor.
-	all i: Ingresso | (one c: Camarote | i in c.ingressos) or (one f: Frontstage | i in f.ingressos)
+fact Ingressos {
+    -- Cada Ingresso pertence a exatamente um setor restrito.
+    all i: Ingresso | one s: SetorRestrito | i in s.ingressos
 
-	-- Um Ingresso não pode pertencer ao Camarote e ao Frontstage ao mesmo tempo.
-	no (Camarote.ingressos & Frontstage.ingressos)
-
-	-- Uma Pessoa não pode ter mais de um Ingresso do mesmo Dia.
-	all d: Dia, p: Pessoa | lone { i: ingressosDoDia[d] | i.dono = p }
+    -- Uma pessoa não pode ter dois ingressos do mesmo dia.
+    all p : Pessoa | all disj i1, i2 : p.~dono | not ingressosMesmoDia[i1, i2]
 }
 
-fact PessoasFact {
-	-- Toda Pessoa está em pelo menos um Dia.
-	all p: Pessoa | some d: Dia | p in pistaDoDia[d].acessos
-
-	-- Toda Pessoa que possui Ingresso tem acesso à Pista daquele Dia.
-	all d: Dia | ingressosDoDia[d].dono in pistaDoDia[d].acessos
+fact Pessoas {
+    -- Toda pessoa pertence a alguma pista.
+    all p : Pessoa | some d: Dia | p in pista[d].acessos
+    
+    -- Toda pessoa que possui um ingresso do dia pertence a pista.
+    all d: Dia | ingressosDoDia[d].dono in pista[d].acessos
 }
 
-fun pistaDoDia[d: Dia]: one Pista {
-	d.setores & Pista
+-- Retorna os setores restritos de um dia.
+fun setoresRestritos[d: Dia]: set SetorRestrito {
+    d.setores & SetorRestrito
 }
 
+-- Retorna os ingressos de um dia.
 fun ingressosDoDia[d: Dia]: set Ingresso {
-	(d.setores & Camarote).ingressos +
-	(d.setores & Frontstage).ingressos
+    setoresRestritos[d].ingressos
 }
 
-pred possuiSetores[d: Dia] {
-	one (d.setores & Pista)
-	one (d.setores & Camarote)
-	one (d.setores & Frontstage)
+-- Retorna a pista de um dia.
+fun pista[d: Dia]: one Pista {
+    d.setores & Pista
 }
 
-run {} for 15 but exactly 5 Dia, 5 Ingresso, 5 Pessoa
+-- Verifica se dois ingressos pertencem ao mesmo dia.
+pred ingressosMesmoDia[i1, i2 : Ingresso] {
+    some d : Dia | i1 in ingressosDoDia[d] and i2 in ingressosDoDia[d]
+}
+
+run {} for 10 but exactly 3 Dia
