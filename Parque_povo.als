@@ -78,4 +78,16 @@ pred ingressosMesmoDia[i1, i2 : Ingresso] {
     some d : Dia | i1 in ingressosDoDia[d] and i2 in ingressosDoDia[d]
 }
 
+-- Verifica se os setores de dois dias são diferentes.
+assert setoresNaoSaoCompartilhados {
+    all disj d1, d2: Dia | no (d1.setores & d2.setores)
+}
+check setoresNaoSaoCompartilhados for 10
+
+-- Garante que nenhum ingresso é compartilhado entre dias diferentes
+assert ingressoPertenceAUmUnicoDia {
+	all i: Ingresso | one d: Dia | i in d.ingressosDoDia
+}
+check ingressoPertenceAUmUnicoDia for 10
+
 run {} for 10 but exactly 3 Dia
