@@ -92,5 +92,62 @@ assert ingressosMesmoSetorEstaoNoMesmoDia {
 }
 check ingressosMesmoSetorEstaoNoMesmoDia for 10
 
+--Cenários exemplos
 
-run {} for 10
+-- Cenário de dia único
+pred diaUmDuasPessoasDoisIngressosFrontCamarote[] {
+    #Dia = 1
+    #Pessoa = 2
+    #Ingresso = 2
+    one i: Ingresso | i.setor in Frontstage
+    one i: Ingresso | i.setor in Camarote
+}
+run diaUmDuasPessoasDoisIngressosFrontCamarote for 5 but exactly 1 Dia, exactly 2 Pessoa, exactly 2 Ingresso, exactly 1 Frontstage, exactly 1 Camarote
+
+-- Cenário com dois dias
+pred doisDiasDoisIngressosFrontCamaroteCada[] {
+    #Dia = 2
+    all d: Dia | #d.pessoasNoDia = 2
+    #Ingresso = 4
+    all d: Dia |
+        (one i: Ingresso | i.dia = d and i.setor in Frontstage) and
+        (one i: Ingresso | i.dia = d and i.setor in Camarote)
+}
+run doisDiasDoisIngressosFrontCamaroteCada for 10
+    but exactly 2 Dia, exactly 4 Ingresso, exactly 2 Frontstage, exactly 2 Camarote
+
+-- Cenário com três dias
+pred tresDiasDoisIngressosFrontCamaroteCada[] {
+    #Dia = 3
+    all d: Dia | #d.pessoasNoDia = 2
+    #Ingresso = 6
+    all d: Dia |
+        (one i: Ingresso | i.dia = d and i.setor in Frontstage) and
+        (one i: Ingresso | i.dia = d and i.setor in Camarote)
+}
+run tresDiasDoisIngressosFrontCamaroteCada for 10
+    but exactly 3 Dia, exactly 6 Ingresso, exactly 3 Frontstage, exactly 3 Camarote
+
+-- Cenário com quatro dias
+pred quatroDiasDoisIngressosFrontCamaroteCada[] {
+    #Dia = 4
+    all d: Dia | #d.pessoasNoDia = 2
+    #Ingresso = 8
+    all d: Dia |
+        (one i: Ingresso | i.dia = d and i.setor in Frontstage) and
+        (one i: Ingresso | i.dia = d and i.setor in Camarote)
+}
+run quatroDiasDoisIngressosFrontCamaroteCada for 10
+    but exactly 4 Dia, exactly 8 Ingresso, exactly 4 Frontstage, exactly 4 Camarote
+
+-- Cenário com cinco dias
+pred cincoDiasDoisIngressosFrontCamaroteCada[] {
+    #Dia = 5
+    all d: Dia | #d.pessoasNoDia = 2
+    #Ingresso = 10
+    all d: Dia |
+        (one i: Ingresso | i.dia = d and i.setor in Frontstage) and
+        (one i: Ingresso | i.dia = d and i.setor in Camarote)
+}
+run cincoDiasDoisIngressosFrontCamaroteCada for 10
+    but exactly 5 Dia, exactly 10 Ingresso, exactly 5 Frontstage, exactly 5 Camarote
