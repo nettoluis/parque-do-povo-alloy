@@ -52,10 +52,10 @@ fact Ingressos {
 
 fact Pessoas {
     -- Toda pessoa pertence a alguma pista.
-    all p : Pessoa | some d: Dia | p in pista[d].acessos
+    all p : Pessoa | some d: Dia | p in pistaDoDia[d].acessos
     
     -- Toda pessoa que possui um ingresso do dia pertence a pista.
-    all d: Dia | ingressosDoDia[d].dono in pista[d].acessos
+    all d: Dia | ingressosDoDia[d].dono in pistaDoDia[d].acessos
 }
 
 -- Retorna os setores restritos de um dia.
@@ -69,7 +69,7 @@ fun ingressosDoDia[d: Dia]: set Ingresso {
 }
 
 -- Retorna a pista de um dia.
-fun pista[d: Dia]: one Pista {
+fun pistaDoDia[d: Dia]: one Pista {
     d.setores & Pista
 }
 
@@ -78,31 +78,29 @@ pred ingressosMesmoDia[i1, i2 : Ingresso] {
     some d : Dia | i1 in ingressosDoDia[d] and i2 in ingressosDoDia[d]
 }
 
--- Garante que os setores de dois dias são diferentes.
-assert setoresNaoSaoCompartilhados {
-    all disj d1, d2: Dia | no (d1.setores & d2.setores)
-}
-check setoresNaoSaoCompartilhados for 10
-
 -- Garante que um ingresso não pertença a dias diferentes.
 assert ingressoNaoPertenceADiasDiferentes {
     all i: Ingresso | all disj d1, d2: Dia | i in ingressosDoDia[d1] implies i not in ingressosDoDia[d2]
 }
-check ingressoNaoPertenceADiasDiferentes for 10
+
+-- Garante que uma pessoa não vá aos dois setores no mesmo dia.
+assert pessoaNaoTemDoisSetoresNoMesmoDia {
+    all p: Pessoa | all d: Dia | lone (p.~dono & ingressosDoDia[d])
+}
 
 -- Cenário exemplo com 2 Dias com perfis diferentes
 pred diasComPerfisDiferentes {
     #Dia = 2
 
     some disj d1, d2: Dia {
-        #pista[d1].acessos >= 3
-        #pista[d2].acessos >= 3
+        #pistaDoDia[d1].acessos >= 3
+        #pistaDoDia[d2].acessos >= 3
 
         -- Existe pelo menos uma pessoa presente nos dois dias.
-        some (pista[d1].acessos & pista[d2].acessos)
+        some (pistaDoDia[d1].acessos & pistaDoDia[d2].acessos)
 
         -- Todos os presentes em d1 possuem ingresso.
-        pista[d1].acessos = ingressosDoDia[d1].dono
+        pistaDoDia[d1].acessos = ingressosDoDia[d1].dono
 
         -- Os dois setores restritos são utilizados em d1.
         some (Camarote.ingressos & ingressosDoDia[d1])
@@ -113,8 +111,6 @@ pred diasComPerfisDiferentes {
     }
 }
 
-run diasComPerfisDiferentes for 6 but exactly 2 Dia, exactly 10 Pessoa
-
 -- Cenário exemplo com 5 Dias com perfis diferentes
 pred cincoDiasComPerfisDiferentes {
     #Dia = 5
@@ -123,27 +119,34 @@ pred cincoDiasComPerfisDiferentes {
 
         -- Dia 1: somente pessoas sem ingresso.
         no ingressosDoDia[d1]
-        #pista[d1].acessos >= 3
+        #pistaDoDia[d1].acessos >= 3
 
         -- Dia 2: somente Camarote.
         some (Camarote.ingressos & ingressosDoDia[d2])
         no (Frontstage.ingressos & ingressosDoDia[d2])
-	pista[d2].acessos = ingressosDoDia[d2].dono
+	pistaDoDia[d2].acessos = ingressosDoDia[d2].dono
 
         -- Dia 3: somente Frontstage.
         some (Frontstage.ingressos & ingressosDoDia[d3])
         no (Camarote.ingressos & ingressosDoDia[d3])
-	pista[d3].acessos = ingressosDoDia[d3].dono
+	pistaDoDia[d3].acessos = ingressosDoDia[d3].dono
 
         -- Dia 4: ambos os setores restritos.
         some (Camarote.ingressos & ingressosDoDia[d4])
         some (Frontstage.ingressos & ingressosDoDia[d4])
-	pista[d4].acessos = ingressosDoDia[d4].dono
+	pistaDoDia[d4].acessos = ingressosDoDia[d4].dono
 
 	-- Dia 5: todas as pessoas já foram em outro dia.
-	all p: pista[d5].acessos | some d: Dia - d5 | p in pista[d].acessos
+	all p: pistaDoDia[d5].acessos | some d: Dia - d5 | p in pistaDoDia[d].acessos
     }
 }
+
+-- Check and Run
+check ingressoNaoPertenceADiasDiferentes for 10
+
+check pessoaNaoTemDoisSetoresNoMesmoDia for 10
+
+run diasComPerfisDiferentes for 6 but exactly 2 Dia, exactly 10 Pessoa
 
 run cincoDiasComPerfisDiferentes for 15 but exactly 5 Dia
 
