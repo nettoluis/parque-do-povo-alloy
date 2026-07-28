@@ -78,16 +78,70 @@ pred ingressosMesmoDia[i1, i2 : Ingresso] {
     some d : Dia | i1 in ingressosDoDia[d] and i2 in ingressosDoDia[d]
 }
 
--- Verifica se os setores de dois dias são diferentes.
+-- Garante que os setores de dois dias são diferentes.
 assert setoresNaoSaoCompartilhados {
     all disj d1, d2: Dia | no (d1.setores & d2.setores)
 }
 check setoresNaoSaoCompartilhados for 10
 
--- Garante que nenhum ingresso é compartilhado entre dias diferentes
-assert ingressoPertenceAUmUnicoDia {
-	all i: Ingresso | one d: Dia | i in d.ingressosDoDia
+-- Garante que um ingresso não pertença a dias diferentes.
+assert ingressoNaoPertenceADiasDiferentes {
+    all i: Ingresso | all disj d1, d2: Dia | i in ingressosDoDia[d1] implies i not in ingressosDoDia[d2]
 }
-check ingressoPertenceAUmUnicoDia for 10
 
-run {} for 10 but exactly 3 Dia
+pred diasComPerfisDiferentes {
+    #Dia = 2
+
+    some disj d1, d2: Dia {
+        #pista[d1].acessos >= 3
+        #pista[d2].acessos >= 3
+
+        -- Existe pelo menos uma pessoa presente nos dois dias.
+        some (pista[d1].acessos & pista[d2].acessos)
+
+        -- Todos os presentes em d1 possuem ingresso.
+        pista[d1].acessos = ingressosDoDia[d1].dono
+
+        -- Os dois setores restritos são utilizados em d1.
+        some (Camarote.ingressos & ingressosDoDia[d1])
+        some (Frontstage.ingressos & ingressosDoDia[d1])
+
+        -- Em d2 ninguém possui ingresso.
+        no ingressosDoDia[d2]
+    }
+}
+
+run diasComPerfisDiferentes for 6 but exactly 2 Dia, exactly 10 Pessoa
+
+pred cincoDiasComPerfisDiferentes {
+    #Dia = 5
+
+    some disj d1, d2, d3, d4, d5: Dia {
+
+        -- Dia 1: somente pessoas sem ingresso.
+        no ingressosDoDia[d1]
+        #pista[d1].acessos >= 3
+
+        -- Dia 2: somente Camarote.
+        some (Camarote.ingressos & ingressosDoDia[d2])
+        no (Frontstage.ingressos & ingressosDoDia[d2])
+	pista[d2].acessos = ingressosDoDia[d2].dono
+
+        -- Dia 3: somente Frontstage.
+        some (Frontstage.ingressos & ingressosDoDia[d3])
+        no (Camarote.ingressos & ingressosDoDia[d3])
+	pista[d3].acessos = ingressosDoDia[d3].dono
+
+        -- Dia 4: ambos os setores restritos.
+        some (Camarote.ingressos & ingressosDoDia[d4])
+        some (Frontstage.ingressos & ingressosDoDia[d4])
+	pista[d4].acessos = ingressosDoDia[d4].dono
+
+	-- Dia 5: todas as pessoas já foram em outro dia.
+	all p: pista[d5].acessos | some d: Dia - d5 | p in pista[d].acessos
+    }
+}
+
+run cincoDiasComPerfisDiferentes for 15 but exactly 5 Dia
+
+run {} for 10
