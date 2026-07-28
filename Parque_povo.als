@@ -88,6 +88,7 @@ check setoresNaoSaoCompartilhados for 10
 assert ingressoNaoPertenceADiasDiferentes {
     all i: Ingresso | all disj d1, d2: Dia | i in ingressosDoDia[d1] implies i not in ingressosDoDia[d2]
 }
+check ingressoNaoPertenceADiasDiferentes for 10
 
 pred diasComPerfisDiferentes {
     #Dia = 2
