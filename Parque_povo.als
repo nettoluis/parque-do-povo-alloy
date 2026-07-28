@@ -90,6 +90,7 @@ assert ingressoNaoPertenceADiasDiferentes {
 }
 check ingressoNaoPertenceADiasDiferentes for 10
 
+-- Cenário exemplo com 2 Dias com perfis diferentes
 pred diasComPerfisDiferentes {
     #Dia = 2
 
@@ -114,6 +115,7 @@ pred diasComPerfisDiferentes {
 
 run diasComPerfisDiferentes for 6 but exactly 2 Dia, exactly 10 Pessoa
 
+-- Cenário exemplo com 5 Dias com perfis diferentes
 pred cincoDiasComPerfisDiferentes {
     #Dia = 5
 
